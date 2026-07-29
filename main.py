@@ -2,6 +2,7 @@ from cryptography.fernet import Fernet
 import customtkinter as ctk
 import json
 import os
+import pyperclip
 
 ctk.set_appearance_mode("Dark")
 app = ctk.CTk()
@@ -15,6 +16,8 @@ screen_height = app.winfo_screenheight()
 
 x = (screen_width - width) // 2
 y = (screen_height - height) // 2
+
+key = None
 
 app.geometry(f"{width}x{height}+{x}+{y}")
 
@@ -48,7 +51,7 @@ def switchSavePage():
 
 def switchLoadPage():
     homePage.forget()
-    SavePage.pack()
+    LoadPage.pack()
 
 def saveToJson():
     password = PasswordEntry.get()
@@ -119,7 +122,7 @@ GetButton.pack(pady= 150, padx=(0, 570), side="right", anchor="n")
 
 ####################################################################################################
 
-WebsiteLabel = ctk.CTkLabel(SavePage, text="Enter the Website you want to store the Password from")
+
 
 WebsiteEntry = ctk.CTkEntry(SavePage, placeholder_text="e.g Google, Yahoo, ...", font=("Arial", 26), width=700, height=50)
 WebsiteEntry.pack(pady=(250, 0))
@@ -130,57 +133,60 @@ PasswordEntry.pack(pady=(130, 0))
 ContinueButton = ctk.CTkButton(SavePage, text="Continue", font=("Arial", 30, "bold"), command=saveToJson)
 ContinueButton.pack(pady=(100, 0), anchor="center")
 
-ValidationFrame = ctk.CTkFrame(SavePage)
+ValidationFrame = ctk.CTkFrame(app)
 ValidationLabel = ctk.CTkLabel(ValidationFrame, text="", font=("Arial", 20))
 
 ####################################################################################################
 
+WebsiteLabel = ctk.CTkLabel(LoadPage, text="Enter the Website you want to store the Password from", font=("Arial", 30, "bold"))
+WebsiteLabel.pack()
+
+def LoadPassword():
+    global WebsiteOut
+    global passwordOut
+
+    PasswordFrame.pack(pady=30)
+    PasswordLabel.pack(pady=10, padx=100, side="left", anchor="center")
+    PasswordCopyButton.pack(side = "right", padx=(0,5))
+    WebsiteOut = Selection.get()
+    passwordOut = cipher.decrypt(data[WebsiteOut]).decode()
+    PasswordLabel.configure(text=passwordOut)
+
+def copyPassword():
+    pyperclip.copy(passwordOut)
+    ValidationLabel.configure(text="Copied Password")
+    ValidationFrame.pack(pady=(30, 0))
+    ValidationLabel.pack(padx=30)
+    glow_effect(ValidationFrame, steps=50, start_rgb=(0, 255, 0,), delay=10)
+
+with open("passwords.json", "r") as file:
+    data = json.load(file)
+
+
+websites = list(data.keys())
+
+Selection = ctk.CTkComboBox(LoadPage, values=websites, state="normal")
+Selection.pack(pady=(150, 0))
 
 
 
+if Selection.get() != "normal":
+    GetPasswordButton = ctk.CTkButton(LoadPage, text="Get Password", command=LoadPassword)
+    GetPasswordButton.pack(pady=(90, 0))
+
+
+
+PasswordFrame = ctk.CTkFrame(LoadPage, width=400)
+
+PasswordLabel = ctk.CTkLabel(PasswordFrame, font=("Arial", 20, "bold"))
+
+PasswordCopyButton = ctk.CTkButton(PasswordFrame, text="⧉ Copy", command=copyPassword)
 
 
 
 LeaveButton = ctk.CTkButton(app, text="Leave", command=app.destroy)
 LeaveButton.pack(pady=10, padx=10, anchor="se")
+
 key = None
-
-
-# 
-# 
-# 
-# readwrite = input("Do you want to read your password? (Y/N)\n")
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# 
-# if readwrite == "Y":
-#     
-#     
-#     
-# 
-#     
-# 
-# elif readwrite == "N":
-#     try:
-#         WebsiteOut = input("From which website do you want to know the Password from?\n")
-# 
-#         with open("passwords.json", "r") as file:
-#             data = json.load(file)
-# 
-#         passwordOut = cipher.decrypt(data[WebsiteOut]).decode()
-# 
-#         print(f"Your Password for {WebsiteOut} is {passwordOut}")
-#     except KeyError:
-#         print("You Do not have that Websites Password stored")
 
 app.mainloop()
